@@ -16,6 +16,7 @@ trigger ErrorInApexJobTrigger on BatchApexErrorEvent (after insert) {
                 e.Stacktrace__c = jobs.get(evt.AsyncApexJobId).ApexClass.Name;
                 e.Async_Apex_Job_Id__c = evt.AsyncApexJobId;
                 e.Job_Scope__c = evt.ExceptionType;
+                e.Message__c = evt.JobScope;
             records.add(e); 
         }
     }
