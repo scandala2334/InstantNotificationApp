@@ -19,19 +19,42 @@
  *
  * See the Apex Language Reference for more information about Testing and Code Coverage.
  */
-@isTest
+@isTest 
 private class ErrorInApexJobTriggerTest {
 
     @isTest
     static void myUnitTest() {
         // TO DO: implement unit test
         // Run Test
-        Test.startTest();
-            Database.executeBatch(new PilotRatingBatch());
-        Test.stopTest();
+
+        Contact ct = new Contact();
+            ct.LastName = 'whodd';
+            ct.Pilot_Rating__c = 4;
+        insert ct;
+
+        Mission__c m = new Mission__c();
+            m.Status__c = 'Complete';
+            m.Pilot__c = ct.id;
+            m.Subject__c = 'New Mission for test';
+            m.Completion_Rating__c = 5;
+            m.Overall_Rating__c = 5;
+            m.Safety_Incidents__c = 0;
+        insert m;
+
+        try{
+            Test.startTest();
+                PilotRatingBatch prb = new PilotRatingBatch();
+                Id batchId = Database.executeBatch(prb);
+            
+            Test.stopTest();
+        } catch (Exception e){
+
+        }
+        
+        Test.getEventBus().deliver();
 
         // Verify that it wrote
         List<Error_Log__c> dl = [SELECT id from Error_Log__c];
-        System.assertEquals(1, dl.size());        
+        System.assertEquals(1, dl.size()); 
     }
 }
