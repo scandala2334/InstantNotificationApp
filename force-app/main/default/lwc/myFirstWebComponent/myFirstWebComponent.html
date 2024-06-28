@@ -7,5 +7,12 @@
               </div>
            </template>
         </div>
-     </lightning-card>    
+     </lightning-card>
+     <lightning-card>
+         <lightning-record-form
+            object-api-name={objectApiName}
+            fields={fields}
+            onsuccess={handleSuccess}>
+         </lightning-record-form>
+     </lightning-card>
 </template>
