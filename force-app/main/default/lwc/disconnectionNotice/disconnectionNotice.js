@@ -1,6 +1,12 @@
 import { LightningElement } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-
+import {
+    subscribe,
+    unsubscribe,
+    onError,
+    setDebugFlag,
+    isEmpEnabled,
+} from 'lightning/empApi';
 
 export default class DisconnectionNotice extends LightningElement {
     subscription = {};
@@ -8,6 +14,11 @@ export default class DisconnectionNotice extends LightningElement {
     identifier;
     channelName;
 
+    // Tracks changes to channelName text field
+    handleChannelName(event) {
+        this.channelName = event.target.value;
+    }
+    
     connectedCallback() {
         this.handleSubscribe();
     }
@@ -17,7 +28,10 @@ export default class DisconnectionNotice extends LightningElement {
     }
 
     handleSubscribe() {
-        //Implement your subscribing solution here 
+        //Implement your subscribing solution here
+        const messageCallback = function (response) {
+            console.log('New message received: ', JSON.stringify(response));
+        };
     }
 
     disconnectedCallback() {
