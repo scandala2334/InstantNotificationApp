@@ -19,10 +19,6 @@ export default class DisconnectionNotice extends LightningElement {
         this.handleSubscribe();
     }
 
-    handleMessage(message) {
-        this.identifier = message.Asset_Identifier__c;
-        this.status = message.status;
-    }
     renderedCallback(){
         
     }
@@ -37,6 +33,11 @@ export default class DisconnectionNotice extends LightningElement {
                 { scope: APPLICATION_SCOPE},
             );
         }
+    }
+
+    handleMessage(message) {
+        this.identifier = message.Asset_Identifier__c;
+        this.status = message.status;
     }
     
     handleUnsubscribe(){
