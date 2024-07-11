@@ -1,41 +1,52 @@
-import { LightningElement } from 'lwc';
+import { LightningElement, wire } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import {
-    subscribe,
-    unsubscribe,
-    onError,
-    setDebugFlag,
-    isEmpEnabled,
-} from 'lightning/empApi';
+import { subscribe, unsubscribe, MessageContext, APPLICATION_SCOPE } from 'lightning/messageService';
+import channelName from '@slaesforce/messageChannel/Asset_Disconnection__c';
+
+
 
 export default class DisconnectionNotice extends LightningElement {
-    subscription = {};
+    subscription = null;
     status;
     identifier;
     channelName;
 
-    // Tracks changes to channelName text field
-    handleChannelName(event) {
-        this.channelName = event.target.value;
-    }
-    
+  
+    @wire(MessageContext)
+    messageContext;
+
     connectedCallback() {
         this.handleSubscribe();
     }
 
+    handleMessage(message) {
+        this.identifier = message.Asset_Identifier__c;
+        this.status = message.status;
+    }
     renderedCallback(){
         
     }
 
     handleSubscribe() {
-        //Implement your subscribing solution here
-        const messageCallback = function (response) {
-            console.log('New message received: ', JSON.stringify(response));
-        };
+        //Implement your subscribing solution here 
+        if (!this.subscription){
+            this.subscription = subscribe(
+                this.messageContext,
+                channelName,
+                (message) => this.handleMessage(message),
+                { scope: APPLICATION_SCOPE},
+            );
+        }
+    }
+    
+    handleUnsubscribe(){
+        unsubscribe(this.subscription);
+        this.subscription = null;
     }
 
     disconnectedCallback() {
         //Implement your unsubscribing solution here
+        this.handleUnsubscribe();
     }
 
     showSuccessToast(assetId) {
