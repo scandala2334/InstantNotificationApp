@@ -1,22 +1,53 @@
 import { LightningElement, wire } from 'lwc';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { subscribe, unsubscribe, MessageContext } from 'lightning/messageService';
+//import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+//import { subscribe, unsubscribe, MessageContext } from 'lightning/messageService';
+
+import { subscribe, MessageContext } from 'lightning/messageService';
 import CHANNEL_NAME from '@salesforce/messageChannel/Asset_Disconnection__c';
 
 export default class DisconnectionNotice extends LightningElement {
-    subscription = {};
-    status;
-    identifier;
+    subscription = null;
+    status = 'good';
+    identifier = 'N/A';
     
     @wire(MessageContext)
     messageContext;
 
+    handleSubscribe() {
+        //Implement your subscribing solution here 
+        this.subscription = subscribe(
+            this.messageContext,
+            CHANNEL_NAME,
+            (message) => this.handleMessage(message),
+        );
+    }
+
+    handleMessage(message) {
+        
+        this.identifier = message.Asset_Identifier__c;
+        this.status = message.Disconnected__c;
+        console.log(this.status);
+        this.showSuccessToast(this.status);
+    }
+
+    connectedCallback() {
+        this.handleSubscribe();
+    }
+
+
+    /*
     connectedCallback() {
         this.handleSubscribe();
     }
 
     renderedCallback(){
         
+    }
+
+    disconnectedCallback() {
+        //Implement your unsubscribing solution here
+        unsubscribe(this.subscription);
+        this.subscription = null;
     }
 
     handleSubscribe() {
@@ -29,9 +60,11 @@ export default class DisconnectionNotice extends LightningElement {
     }
 
     handleMessage(message) {
+        
         this.identifier = message.Asset_Identifier__c;
         this.status = message.Disconnected__c;
-
+        this.showSuccessToast(this.status);
+/*
         if (this.status === true){
             this.showSuccessToast(this.identifier);
         } else {
@@ -39,15 +72,6 @@ export default class DisconnectionNotice extends LightningElement {
         }
     }
     
-    handleUnsubscribe(){
-        unsubscribe(this.subscription);
-        this.subscription = null;
-    }
-
-    disconnectedCallback() {
-        //Implement your unsubscribing solution here
-        this.handleUnsubscribe();
-    }
 
     showSuccessToast(assetId) {
         const event = new ShowToastEvent({
@@ -68,5 +92,5 @@ export default class DisconnectionNotice extends LightningElement {
         });
         this.dispatchEvent(event);
     }
-
+*/
 }
