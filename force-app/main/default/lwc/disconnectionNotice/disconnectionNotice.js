@@ -1,17 +1,13 @@
 import { LightningElement, wire } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { subscribe, unsubscribe, MessageContext, APPLICATION_SCOPE } from 'lightning/messageService';
-import channelName from '@slaesforce/messageChannel/Asset_Disconnection__c';
-
-
+import { subscribe, unsubscribe, MessageContext } from 'lightning/messageService';
+import CHANNEL_NAME from '@salesforce/messageChannel/Asset_Disconnection__c';
 
 export default class DisconnectionNotice extends LightningElement {
-    subscription = null;
+    subscription = {};
     status;
     identifier;
-    channelName;
-
-  
+    
     @wire(MessageContext)
     messageContext;
 
@@ -25,19 +21,22 @@ export default class DisconnectionNotice extends LightningElement {
 
     handleSubscribe() {
         //Implement your subscribing solution here 
-        if (!this.subscription){
-            this.subscription = subscribe(
-                this.messageContext,
-                channelName,
-                (message) => this.handleMessage(message),
-                { scope: APPLICATION_SCOPE},
-            );
-        }
+        this.subscription = subscribe(
+            this.messageContext,
+            CHANNEL_NAME,
+            (message) => this.handleMessage(message),
+        );
     }
 
     handleMessage(message) {
         this.identifier = message.Asset_Identifier__c;
-        this.status = message.status;
+        this.status = message.Disconnected__c;
+
+        if (this.status === true){
+            this.showSuccessToast(this.identifier);
+        } else {
+            this.showErrorToast();
+        }
     }
     
     handleUnsubscribe(){
