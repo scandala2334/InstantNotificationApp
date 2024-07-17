@@ -9,14 +9,14 @@ export default class NotifyEMP extends LightningElement {
     notifications = [];
     
     handleNotificationEvent(event) {
-        console.dir(event);
+        //console.dir(event);
         // Parse event data
         const id = event.data.event.replayId;
         //const message = event.data.event.replayId;
         const message = event.data.payload.Asset_Identifier__c;
         const status = event.data.payload.Disconnected__c;
         this.identifier = message;
-        this.status = status;
+        this.status = event.data.payload;
         // Add notification to view
         const notification = {
           id,
@@ -35,6 +35,7 @@ export default class NotifyEMP extends LightningElement {
       }
 
     async connectedCallback() {
+    //connectedCallback() {
         // Configure default error handler for the EMP API
         onError((error) => {
             this.dispatchEvent(
@@ -50,6 +51,7 @@ export default class NotifyEMP extends LightningElement {
         // listen to all new events
         // and handle them with handleNotificationEvent
         this.subscription = await subscribe(
+        //this.subscription = subscribe(    
             "/event/Asset_Disconnection__e",
             -1,
             (event) => this.handleNotificationEvent(event)
