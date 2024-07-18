@@ -1,8 +1,10 @@
-import { LightningElement } from 'lwc';
+import { LightningElement, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { subscribe, unsubscribe, onError } from "lightning/empApi";
 
 export default class DisconnectionNotice extends LightningElement {
+    @track
+
     subscription = {};
     status;
     identifier;
@@ -24,34 +26,33 @@ export default class DisconnectionNotice extends LightningElement {
             this.status = status;
             this.identifier = identifier; 
             console.log('New message received: ', JSON.stringify(response));
-            if (status === true){
-                console.log('In Loop True: ', JSON.stringify(response.data.payload.Disconnected__c));
-                this.showSuccessToast(identifier);
-            } else {
-                console.log('In Loop False: ', JSON.stringify(response.data.payload.Disconnected__c));
-                this.showErrorToast();
-            }
+            return this.showToast(response);
         }
-
-        /*const messageCallback = function (response) {
-            console.log('New message received: ', JSON.stringify(response.data.payload.Disconnected__c));
-            // Response contains the payload of the new message received
-        };*/
 
         // Invoke subscribe method of empApi. Pass reference to messageCallback
         subscribe(this.channelName, 
             -1, 
             messageCallback).then((response) => {
-            // Response contains the subscription information on subscribe call
-            console.log(
-                'Subscription request sent to: ',
-                //JSON.stringify(response.channel)
-                JSON.stringify(response)
-            );
-            this.subscription = response;
+                // Response contains the subscription information on subscribe call
+                console.log(
+                    'Subscription request sent to: ',
+                    //JSON.stringify(response.channel)
+                    JSON.stringify(response)
+                );
+                this.subscription = response;
             });
     }
 
+    showToast (response){
+        
+        if (this.status === true){
+            console.log('In showToast True: ', JSON.stringify(this.identifier));
+            this.showSuccessToast(this.identifier);
+        } else {
+            console.log('In showToast False: ', JSON.stringify(response.data.payload.Disconnected__c));
+            this.showErrorToast();
+        }
+    }
     disconnectedCallback() {
         //Implement your unsubscribing solution here
         unsubscribe(this.subscription);
@@ -78,6 +79,7 @@ export default class DisconnectionNotice extends LightningElement {
         });
         this.dispatchEvent(event);
     }
+
     registerErrorListener() {
         // Invoke onError empApi method
         onError((error) => {
