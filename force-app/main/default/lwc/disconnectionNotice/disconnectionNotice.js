@@ -2,7 +2,6 @@ import { LightningElement } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { subscribe, unsubscribe, onError } from "lightning/empApi";
 
-
 export default class DisconnectionNotice extends LightningElement {
     subscription = {};
     status;
@@ -16,31 +15,41 @@ export default class DisconnectionNotice extends LightningElement {
     renderedCallback(){
     }
 
-    handleNotificationEvent(event) {
-        const status = event.data.payload.Disconnected__c;
-        const identifier = event.data.payload.Asset_Identifier__c;
-        this.status = status;
-        this.identifier = identifier; 
-        
-        if(status === true){
-        this.showSuccessToast(identifier);
-        } else {
-            this.showErrorToast();
-        }
-    }
-
-    async handleSubscribe() {
+    handleSubscribe() {
         //Implement your subscribing solution here 
-        onError((error) => {
-            this.showErrorToast();
-            console.log("EMP API error reported by server: ", JSON.stringify(error));
-        });
 
-        this.subscription = await subscribe(  
-            this.channelName,
-            -1,
-            (event) => this.handleNotificationEvent(event)
-        );
+        const messageCallback = function (response) {
+            const status = response.data.payload.Disconnected__c;
+            const identifier = response.data.payload.Asset_Identifier__c;
+            this.status = status;
+            this.identifier = identifier; 
+            console.log('New message received: ', JSON.stringify(response));
+            if (status === true){
+                console.log('In Loop True: ', JSON.stringify(response.data.payload.Disconnected__c));
+                this.showSuccessToast(identifier);
+            } else {
+                console.log('In Loop False: ', JSON.stringify(response.data.payload.Disconnected__c));
+                this.showErrorToast();
+            }
+        }
+
+        /*const messageCallback = function (response) {
+            console.log('New message received: ', JSON.stringify(response.data.payload.Disconnected__c));
+            // Response contains the payload of the new message received
+        };*/
+
+        // Invoke subscribe method of empApi. Pass reference to messageCallback
+        subscribe(this.channelName, 
+            -1, 
+            messageCallback).then((response) => {
+            // Response contains the subscription information on subscribe call
+            console.log(
+                'Subscription request sent to: ',
+                //JSON.stringify(response.channel)
+                JSON.stringify(response)
+            );
+            this.subscription = response;
+            });
     }
 
     disconnectedCallback() {
@@ -49,6 +58,7 @@ export default class DisconnectionNotice extends LightningElement {
     }
 
     showSuccessToast(assetId) {
+        console.log('In Toast True: ', JSON.stringify(this.status));
         const event = new ShowToastEvent({
             title: 'Success',
             message: 'Asset Id '+assetId+' is now disconnected',
@@ -59,6 +69,7 @@ export default class DisconnectionNotice extends LightningElement {
     }
 
     showErrorToast() {
+        console.log('In Toast False: ', JSON.stringify(this.status));
         const event = new ShowToastEvent({
             title: 'Error',
             message: 'Asset was not disconnected. Try Again.',
@@ -67,5 +78,11 @@ export default class DisconnectionNotice extends LightningElement {
         });
         this.dispatchEvent(event);
     }
-
+    registerErrorListener() {
+        // Invoke onError empApi method
+        onError((error) => {
+            console.log('Received error from server: ', JSON.stringify(error));
+            // Error contains the server-side error
+        });
+    }
 }
