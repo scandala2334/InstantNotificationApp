@@ -1,9 +1,8 @@
-import { LightningElement, track } from 'lwc';
+import { LightningElement } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { subscribe, unsubscribe, onError } from "lightning/empApi";
 
 export default class DisconnectionNotice extends LightningElement {
-    @track
 
     subscription = {};
     status;
@@ -20,13 +19,13 @@ export default class DisconnectionNotice extends LightningElement {
     handleSubscribe() {
         //Implement your subscribing solution here 
 
-        const messageCallback = function (response) {
+        const messageCallback = (response) => {
             const status = response.data.payload.Disconnected__c;
             const identifier = response.data.payload.Asset_Identifier__c;
             this.status = status;
             this.identifier = identifier; 
             console.log('New message received: ', JSON.stringify(response));
-            return this.showToast(response);
+            this.showToast(response);
         }
 
         // Invoke subscribe method of empApi. Pass reference to messageCallback
