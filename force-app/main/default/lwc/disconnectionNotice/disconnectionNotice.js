@@ -18,40 +18,32 @@ export default class DisconnectionNotice extends LightningElement {
 
     handleSubscribe() {
         //Implement your subscribing solution here 
-
-        const messageCallback = (response) => {
-            const status = response.data.payload.Disconnected__c;
-            const identifier = response.data.payload.Asset_Identifier__c;
-            this.status = status;
-            this.identifier = identifier; 
-            console.log('New message received: ', JSON.stringify(response));
-            this.showToast(response);
-        }
-
-        // Invoke subscribe method of empApi. Pass reference to messageCallback
-        subscribe(this.channelName, 
+        this.subscription = subscribe (
+            this.channelName, 
             -1, 
-            messageCallback).then((response) => {
-                // Response contains the subscription information on subscribe call
-                console.log(
-                    'Subscription request sent to: ',
-                    //JSON.stringify(response.channel)
-                    JSON.stringify(response)
-                );
-                this.subscription = response;
-            });
+            (message) => this.handleMessage(message)
+        )
     }
 
-    showToast (response){
-        
-        if (this.status === true){
-            console.log('In showToast True: ', JSON.stringify(this.identifier));
-            this.showSuccessToast(this.identifier);
-        } else {
-            console.log('In showToast False: ', JSON.stringify(response.data.payload.Disconnected__c));
-            this.showErrorToast();
+    handleMessage (message){
+        const status = message.data.payload.Disconnected__c;
+        const identifier = message.data.payload.Asset_Identifier__c;
+        this.status = status;
+        this.identifier = identifier; 
+        console.log('New message received: ', JSON.stringify(message));
+
+        const messageCallback = () => {
+            if (this.status === true){
+                console.log('In showToast True: ', JSON.stringify(this.identifier));
+                this.showSuccessToast(this.identifier);
+            } else {
+                console.log('In showToast False: ', JSON.stringify(this.status));
+                this.showErrorToast();
+            }
         }
+        messageCallback();
     }
+
     disconnectedCallback() {
         //Implement your unsubscribing solution here
         unsubscribe(this.subscription);
